@@ -8,14 +8,14 @@ subtitle: Keep Learning and Never Give Up
 description: WgCg、Cong.Wang、WangCong、Vue、Webpack、HTML、CSS、JS
 keywords: FrontEnd、Life
 author: Cong.Wang
-language: Chinese
+language: zh-CN
 timezone:
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
 url: http://yoursite.com
 root: /
-permalink: :category/:id
+permalink: :year/:month/:day/:title.html
 permalink_defaults:
 
 # Directory
@@ -29,7 +29,7 @@ i18n_dir: :lang
 skip_render:
 
 # Writing
-new_post_name: :year-:month-:day-:title.md # File name of new posts
+new_post_name: :title # File name of new posts
 default_layout: post
 titlecase: false # Transform title into titlecase
 external_link: true # Open external links in new tab
@@ -73,12 +73,65 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: landscape
+theme: next
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: git@github.com:WgCg/MyBlog.git
-  branch: [branch]
-  message: [message]
+  repo: git@github.com:WgCg/wgcg.github.io.git
+  branch: master
+  message: 'update blog'
+
+# 统计设置
+symbols_count_time:
+  symbols: true
+  time: true
+  total_symbols: true
+  total_time: true
+
+# 搜索设置
+search:
+  path: search.xml
+  field: post
+  format: html
+  limit: 10000
+
+# Live2D
+## https://github.com/EYHN/hexo-helper-live2d
+live2d:
+  enable: true
+  scriptFrom: local
+  pluginRootPath: live2dw/
+  pluginJsPath: lib/
+  pluginModelPath: assets/
+  tagMode: false
+  debug: false
+  model:
+    use: live2d-widget-model-shizuku
+  display:
+    position: right
+    width: 100
+    height: 200
+  mobile:
+    show: false
+
+# Yilia Theme Module
+# jsonContent:
+#   meta: false
+#   pages: false
+#   posts:
+#     title: true
+#     date: true
+#     path: true
+#     text: false
+#     raw: false
+#     content: false
+#     slug: false
+#     updated: false
+#     comments: false
+#     link: false
+#     permalink: false
+#     excerpt: false
+#     categories: false
+#     tags: true
