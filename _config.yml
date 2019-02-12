@@ -29,7 +29,7 @@ i18n_dir: :lang
 skip_render:
 
 # Writing
-new_post_name: :title # File name of new posts
+new_post_name: :year-:month-:day-:title.md # File name of new posts
 default_layout: post
 titlecase: false # Transform title into titlecase
 external_link: true # Open external links in new tab
@@ -115,6 +115,14 @@ live2d:
     height: 200
   mobile:
     show: false
+
+# 阅读数量统计
+leancloud_counter_security:
+  enable_sync: true
+  app_id: Snnrz3T8cyFAvfrigABOEySh-gzGzoHsz
+  app_key: fvRMLVR3k87Xglv5rclYX1mu
+  username: 851350628@qq.com # Will be asked while deploying if is left blank
+  password: WangCong20146337 # Recommmended to be left blank. Will be asked while deploying if is left blank
 
 # Yilia Theme Module
 # jsonContent:
