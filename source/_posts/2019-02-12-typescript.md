@@ -492,15 +492,650 @@ let point3d: Point3d = { x: 1, y: 2, z: 3 }
 
 ### 函数
 
+#### 为函数定义类型
+
+函数的类型由参数类型和返回值类型决定
+
+```typescript
+function add(x: number, y: number): number {
+    return x + y
+}
+
+let myAdd = function (x: number, y: number): number {
+    return x + y
+}
+```
+
+#### 书写完整函数类型
+
+```typescript
+let myAdd: (baseValue: number, increment: number) => number = function (x: number, y: number): number {
+    return x + y
+}
+```
+
+#### 可选参数和默认参数
+
+* 传递给一个函数的参数个数必须与函数期望的参数个数一致
+    ```typescript
+    function buildName(firstName: string, lastName: string) {
+        return firstName + " " + lastName;
+    }
+
+    let result1 = buildName("Bob");                  // error, too few parameters
+    let result2 = buildName("Bob", "Adams", "Sr.");  // error, too many parameters
+    let result3 = buildName("Bob", "Adams");         // ah, just right
+    ```
+* 在参数名旁边使用?实现可选参数的功能，可选参数必须跟在必须参数后面
+    ```typescript
+    function buildName(firstName: string, lastName?: string) {
+        if (lastName)
+            return firstName + " " + lastName;
+        else
+            return firstName;
+    }
+
+    let result1 = buildName("Bob");  // works correctly now
+    let result2 = buildName("Bob", "Adams", "Sr.");  // error, too many parameters
+    let result3 = buildName("Bob", "Adams");  // ah, just right
+    ```
+* 带默认值得参数不需要放在必须参数的后面。如果带默认值的参数出现在必须参数前面，用户必须明确的传入undefined值来获得默认值
+    ```typescript
+    function buildName(firstName = "Will", lastName: string) {
+        return firstName + " " + lastName;
+    }
+
+    let result1 = buildName("Bob");                  // error, too few parameters
+    let result2 = buildName("Bob", "Adams", "Sr.");  // error, too many parameters
+    let result3 = buildName("Bob", "Adams");         // okay and returns "Bob Adams"
+    let result4 = buildName(undefined, "Adams");     // okay and returns "Will Adams"
+    ```
+* 可选参数和末尾的默认参数共享参数类型
+    ```typescript
+    function buildName(firstName: string, lastName?: string) {
+        //. ..
+    }
+    ```
+    和
+    ```typescript
+    function buildName(firstName: string, lastName = 'Smith') {
+        //. ..
+    }
+    ```
+    共享同样的类型(firstName: string, lastName?: string) => string
+
+#### 剩余参数
+
+通过...操作符来获取剩余参数
+
+```typescript
+function buildName(firstName: string, ...restOfName: string[]) {
+    return firstName + ' ' + restOfName.join(' ')
+}
+
+let buildNameFun: (fname: string, ...rest: string[]) => string = buildName
+```
+
+#### 重载
+
+定义重载时，一定要把最精确的定义放在最前面
+
+```typescript
+let suits = ["hearts", "spades", "clubs", "diamonds"];
+
+function pickCard(x: {suit: string; card: number; }[]): number;
+function pickCard(x: number): {suit: string; card: number; };
+function pickCard(x): any {
+    // Check to see if we're working with an object/array
+    // if so, they gave us the deck and we'll pick the card
+    if (typeof x == "object") {
+        let pickedCard = Math.floor(Math.random() * x.length);
+        return pickedCard;
+    }
+    // Otherwise just let them pick the card
+    else if (typeof x == "number") {
+        let pickedSuit = Math.floor(x / 13);
+        return { suit: suits[pickedSuit], card: x % 13 };
+    }
+}
+
+let myDeck = [{ suit: "diamonds", card: 2 }, { suit: "spades", card: 10 }, { suit: "hearts", card: 4 }];
+let pickedCard1 = myDeck[pickCard(myDeck)];
+alert("card: " + pickedCard1.card + " of " + pickedCard1.suit);
+
+let pickedCard2 = pickCard(15);
+alert("card: " + pickedCard2.card + " of " + pickedCard2.suit);
+```
+
+注意，function pickCard(x): any并不是重载列表的一部分，是函数的具体实现。
+
 ### 泛型
+
+含义：类型的参数化，就是可以把类型像方法的参数那样传递
+
+```typescript
+// 参数类型与返回值类型相同
+function identity<T>(arg: T): T {
+    return arg
+}
+
+let output = identity<string>('myString')
+let output = identity('myString')
+```
+
+#### 使用泛型变量
+
+使用泛型创建像identity这样的泛型函数时，编译器要求你在函数体必须正确的使用这个通用的类型。换句话说，你必须把这些参数当做是任意或所有类型
+
+```typescript
+function loggingIdentity<T>(arg: T): T {
+    // Error: T doesn't have .length
+    console.log(arg.length)
+    return arg
+}
+```
+
+#### 泛型类型
+
+泛型函数的类型与非泛型函数的类型没什么不同，只是有一个类型参数放在最前面，像函数声明一样：
+
+```typescript
+function identity<T>(arg: T): T {
+    return arg
+}
+
+let myIdentity: <U>(arg: U) => U = identity
+```
+
+还可以使用带有调用签名的对象字面量来定义泛型函数
+
+```typescript
+function identity<T>(arg: T): T {
+    return arg
+}
+
+let myIdentity1: { <U>(arg: U): U } = identity
+```
+
+这引导我们去写一个泛型接口了
+
+```typescript
+interface GenericIdentityFn {
+    <U>(arg: U): U
+}
+
+function identity<T>(arg: T): T {
+    return arg
+}
+
+let myIdentity: GenericIdentityFn = identity
+```
+
+或者我们可以把泛型参数当做整个接口的一个参数
+
+```typescript
+interface GenericIdentityFn<U> {
+    (arg: U): U
+}
+
+function identity<T>(arg: T): T {
+    return arg
+}
+
+let myIdentity: GenericIdentityFn<number> = identity
+```
+
+#### 泛型类
+
+泛型类指的是实例部分的类型，所以类的静态属性不能使用这个泛型类型
+
+```typescript
+class GenericNumber<T> {
+    zeroValue: T
+    add: (x: T, y: T) => T
+}
+
+let myGenericNumber = new GenericNumber<number>()
+myGenericNumber.zeroValue = 0
+myGenericNumber.add = function(x, y) { return x + y }
+```
+
+#### 泛型约束
+
+如果我们想要限制函数去处理任意带有.length属性的所有类型。只要传入的类型中有这个属性，我们就允许。为此，我们需要累出对于T的约束要求。
+
+为此，我们定义一个接口来描述约束条件。创建一个包含.length属性的接口，使用这个接口和extends关键字来实现约束：
+
+```typescript
+interface Lengthwise {
+    length: number
+}
+
+function loggingIdentity<T extends Lengthwise>(arg: T): T {
+    // Now we konw it has .length property, so no more error
+    console.log(arg.length)
+    return arg
+}
+```
+
+#### 在泛型约束中使用类型参数
+
+你可以声明一个类型参数，且它被另一个类型参数所约束。 比如，现在我们想要用属性名从对象里获取这个属性。 并且我们想要确保这个属性存在于对象 obj上，因此我们需要在这两个类型之间使用约束。
+
+```typescript
+function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
+    return obj[key];
+}
+
+let x = { a: 1, b: 2, c: 3, d: 4 };
+
+getProperty(x, "a"); // okay
+getProperty(x, "m"); // error: Argument of type 'm' isn't assignable to 'a' | 'b' | 'c' | 'd'.
+// export default {}
+```
+
+#### 在泛型里使用类类型
+
+在TypeScript使用泛型创建工厂函数时，需要引用构造函数的类类型。比如：
+
+```typescript
+function create<T>(c: { new(): T }): T {
+    return new c()
+}
+```
 
 ### 枚举
 
+使用枚举我们可以定义一些带名字的常量。使用枚举可以清晰地表达意图或创建一组有区别的用例。TypeScript支持数字的和基于字符串的枚举。
+
+#### 数字枚举
+
+* 默认从0开始，往后依次加1
+* 如果给其中一个枚举成员赋值n，这后续的枚举成员从n开始依次加1
+
+```typescript
+enum Direction {
+    top,
+    bottom = 4,
+    left,
+    right = 10,
+    topLeft,
+    topRight,
+    bottomLeft,
+    bottomRight
+}
+
+console.log(Direction.top) // 0
+console.log(Direction.left) // 5
+console.log(Direction.topLeft) // 11
+console.log(Direction[4]) // 'bottom'
+```
+
+数字枚举可以被混入到**计算过的和常量成员（如下所示）**，简单地说，不带初始化器的枚举，要么被放在第一的位置，要么被放在使用了数字常量或者其它常量初始化了的枚举后面。换句话说，下面的情况是不被允许的：
+
+```typescript
+enum E {
+    A = getSomeValue(),
+    B, // error! 'A' is not constant-initialized, so 'B' needs an initializer
+}
+```
+
+#### 字符串枚举
+
+在一个字符串枚举里，每个成员都必须用字符串字面量，或另外一个字符串枚举成员进行初始化
+
+```typescript
+enum Direction {
+    Up = 'UP',
+    Down = 'DOWN',
+    Left = 'LEFT',
+    Right = 'RIGHT'
+}
+```
+
+#### 异构枚举
+
+从技术的角度来说，枚举可以混合字符串和数字成员，除非你真的想要利用JavaScript运行时的行为，否则我们不建议这样做
+
+```typescript
+enum BooleanLikeHetergeneousEnum {
+    No = 0,
+    Yes = 'YES'
+}
+```
+
+#### 计算的和常量成员
+
+每个枚举成员都带有一个值，它可以是*常量*或*计算*出来的。当满足如下条件时，枚举成员被当作是常量：
+
+* 它是枚举的第一个成员且没有初始化器，这种情况下它被赋值于0
+* 它不带有初始化器且它之前的枚举成员是一个*数字常量*。这种情况下，当前枚举成员的值为它上一个枚举成员的值加1
+* 枚举成员使用*常量枚举表达式*初始化。常量枚举表达式是TypeScript表达式的子集，他可以在编译阶段求值。当一个表达式满足下面条件之一时，它就是一个常量枚举表达式：
+    * 一个枚举表达式字面量（主要是字符串字面量和数字字面量）
+    * 一个对之前定义的常量枚举成员的引用（可以是在不同的枚举类型中定义的）
+    * 带括号的常量枚举表达式
+    * 一元运算符+，-，~其中之一运用在了常量枚举表达式
+    * 常量枚举表达式做为二元运算符 +，-，*，/，%，<<，>>，>>>，|，^的操作对象。若常数枚举表达式求值后为NaN或Inifity，则会在编译阶段报错
+
+所有其它情况的枚举成员被当作是需要计算得出的值
+
+#### 联合枚举与枚举成员的类型
+
+存在一种特殊的非计算的常量枚举成员的子集：字面量枚举成员。字面量枚举成员是指不带有初始值的常量枚举成员，或者是值被初始化为
+
+* 任何字符串字面量（例如："foo", "bar"）
+* 任何数字字面量（例如：1，100）
+* 应用了一元 - 符号的数字字面量（例如：-1，-100）
+
+当所有枚举成员都拥有字面量枚举值时，它就带有了一种特殊的语义：
+
+* 枚举成员成为了类型。例如，我们可以说某些成员只能是枚举成员的值：
+    ```typescript
+    enum ShapeKind {
+        Circle,
+        Square,
+    }
+
+    interface Circle {
+        kind: ShapeKind.Circle
+        radius: number
+    }
+
+    interface Square {
+        kind: ShapeKind.Square
+        sideLength: number
+    }
+
+    let c: Circle = {
+        kind: ShapeKind.Square,
+        //    ~~~~~~~~~~~~~~~~ Error!
+        radius: 100,
+    }
+
+    // 当有成员为非字面量枚举值时
+    enum ColorKind {
+        Red,
+        Green,
+        Yellow = 2 << 3
+    }
+
+    interface Green {
+        // 错误：枚举类型“ColorKind”包含具有不是文本的初始值设定项的成员
+        kind: ColorKind.Green
+    }
+    ```
+* 枚举类型本身变成了每个枚举成员的联合。通过联合枚举，类型系统能够利用这样一个事实，它可以知道枚举里的值得集合。因此，TypeScript能够捕获在比较值的时候犯的愚蠢的错误。例如：
+    ```typescript
+    enum E {
+        Foo,
+        Bar
+    }
+
+    function f(x: E) {
+        if (x !== E.Foo || x !== E.Bar) {
+            //
+            // Error! Operator '!==' cannot be applied to types 'E.Foo' and 'E.Bar'.
+        }
+    }
+    ```
+    这个例子里，我们先检查 x是否不是 E.Foo。 如果通过了这个检查，然后 ||会发生短路效果， if语句体里的内容会被执行。 然而，这个检查没有通过，那么 x则 只能为 E.Foo，因此没理由再去检查它是否为 E.Bar
+
+#### 运行时的枚举
+
+枚举是在运行时真正存在的对象。例如下面的枚举：
+
+```typescript
+enum E {
+    X, Y, Z
+}
+
+function f(obj: { X: number }) {
+    return obj.X
+}
+// Works, since 'E' has a property named 'X' which is a number.
+f(E)
+```
+
+##### 反向映射
+
+从枚举值到枚举名字，但不会为字符串枚举成员生成反向映射，如：
+
+```typescript
+enum NumberEnum {
+    A
+}
+enum StringEnum {
+    A = 'a'
+}
+
+console.log(NumberEnum[0]) // 'A'
+console.log(StringEnum['a']) // undefined
+```
+
+##### const枚举
+
+常量枚举有两个特点：
+
+* 常量枚举只能使用常量枚举表达式。
+    ```typescript
+    // OK
+    enum NumberEnum {
+        A,
+        B = Math.random()
+    }
+
+    // Error
+    const enum NumberEnum {
+        A,
+        B = Math.random()
+    }
+    ```
+* 不同于常规的枚举，它们在编译阶段会被删除。常量枚举成员在使用的地方会被内联进来。之所以可以这么做是因为，常量枚举不允许包含计算成员。
+    ```typescript
+    const enum Directions {
+        Up,
+        Down,
+        Left,
+        Right
+    }
+
+    let directions = [Directions.Up, Directions.Down, Directions.Left, Directions.Right]
+    ```
+    生成后的代码为：
+    ```typescript
+    var directions = [0 /* Up */, 1 /* Down */, 2 /* Left */, 3 /* Right */];
+    ```
+
+#### 外部枚举
+
+外部枚举用来描述已经存在的枚举类型的形状
+
+```typescript
+declare enum Enum {
+    A = 1,
+    B,
+    C = 2
+}
+```
+
+外部枚举和非外部枚举之间有一个重要的区别，在正常的枚举里，没有初始化方法的成员被当成常数成员。 对于非常数的外部枚举而言，没有初始化方法时被当做需要经过计算的。
+
 ### 类型推论
+
+这节介绍TypeScript里的类型推论。即，类型是在哪里如何被推断的
+
+#### 基础
+
+TypeScript里，在有些没有明确指出类型的地方，类型推论会帮助提供类型。如下面的例子
+
+```typescript
+let x = 3
+```
+
+变量x的类型为数字。这种推断发生在初始化变量和成员，设置默认参数值和决定函数返回值时。
+
+
+#### 最佳通用类型
+
+当需要从几个表达式中推断类型的时候，会使用这些表达式的类型来推断出一个最适合的通用类型，如果没有找到最佳通用类型的话，类型推断的结果为联合数组类型。
+
+```typescript
+let x = [0, 1, null] // (number)[]
+let zoo = [new Rhino(), new Elephant(), new Snake()] // (Rhino | Elephant | Snake)[]
+// 当候选类型不能使用的时候，我们需要明确的指出类型
+let zoo: Animal[] = [new Rhino(), new Elephant(), new Snake()]
+```
+
+#### 上下文类型
+
+TypeScript类型推论也可能按照相反的方向进行。这被叫做”按上下文归类“。按上下文归类会发生在表达式的类型与所处的位置相关时。比如：
+
+```typescript
+window.onmousedown = function (mouseEvent) {
+    console.log(mouseEvent.message) // Error
+}
+```
+
+如果上下文类型表达式包含了明确的类型信息，上下文的类型被忽略。重写上面的例子
+
+```typescript
+window.onmousedown = function(mouseEvent: any) {
+    console.log(mouseEvent.message);  //<- Now, no error is given
+};
+```
+
+上下文归类会在很多情况下使用到。 通常包含函数的参数，赋值表达式的右边，类型断言，对象成员和数组字面量和返回值语句。 上下文类型也会做为最佳通用类型的候选类型。比如：
+
+```typescript
+function createZoo(): Animal[] {
+    return [new Rhino(), new Elephant(), new Snake()];
+}
+```
+
+这个例子里，最佳通用类型由4个候选者：Animal，Rhino，Elephant和Snake。当然，Animal会被作为最佳通用类型
 
 ### 类型兼容性
 
+TypeScript里的类型兼容性是基于结构子类型的。结构类型是一种值使用其成员来描述类型的方式。它正好与名义（nominal）类型形成对比。（在基于名义类型的类型系统中，数据类型的兼容性或等价性是通过明确的声明和/或类型的名称来决定的。这与结构性类型系统不同，它是基于类型的组成结构，且不要求明确地声明。） 看下面的例子：
+
+```typescript
+interface Named {
+    name: string
+}
+class Person {
+    name: string
+}
+
+// OK, because of a structural typing
+let p: Named = new Person 
+```
+
+TypeScript的结构性子类型是根据JavaScript代码的典型写法来设计的。 因为JavaScript里广泛地使用匿名对象，例如函数表达式和对象字面量，所以使用结构类型系统来描述这些类型比使用名义类型系统更好。
+
+#### 开始
+
+TypeScript结构化类型系统的基本规则是，如果x要兼容y，那么y至少具有x相同的属性，如果一个y类型的值赋给一个x类型的值，则会递归遍历x的属性是否在y中都存在，如果都存在，则这两者是兼容的，比如
+
+```typescript
+interface Named {
+    props: {
+        name: string
+    }
+}
+
+function greet(n: Named) {
+    console.log('Hello, ' + n.props.name)
+}
+let y = { props: {name: 'a'} }
+greet(y) // OK
+```
+
+#### 比较两个函数
+
+x(源函数) = y(目标函数)
+
+* 目标函数的参数必须能在源函数里找到对应类型的参数
+* 源函数的返回值类型必须是目标函数返回值类型的子类型
+* 比较函数兼容性的时候，可选参数与必须参数是可互换的。源类型上有额外的可选参数不是错误，目标类型的可选参数在源类型里没有对应的参数也不是错误。
+* 对于有重载的函数，源函数的每个重载都要在目标函数上找到对应的签名
+
+```typescript
+let x = (a: number) => ({ a: 1, b: 2 })
+let y = (b: number, s: string) => ({ a: 1 })
+
+y = x // OK
+```
+
+#### 枚举
+
+数字枚举类型与数字类型兼容，并且数字类型与数字枚举类型兼容。不同枚举类型之间是不兼容的。比如
+
+```typescript
+enum Status { Ready, Waiting }
+enum Color { Red, Blue, Green }
+
+let st = Status.Ready
+let a: number = 2
+st = 2 // OK
+a = Status.Ready // OK
+st = Color.Green;  // Error
+```
+
+#### 类
+
+类与对象字面量和接口差不多，但有一点不同：类有静态部分和实例部分的类型。比较两个类类型的对象时，只有实例的成员会被比较。静态成员和构造函数不在比较的范围内。
+
+类的私有成员和受保护成员会影响兼容性。 当检查类实例的兼容时，如果目标类型包含一个私有成员，那么源类型必须包含来自同一个类的这个私有成员。 同样地，这条规则也适用于包含受保护成员实例的类型检查。 这允许子类赋值给父类，但是不能赋值给其它有同样类型的类。
+
+#### 泛型
+
+因为TypeScript是结构性的类型系统，类型参数只影响使用其做为类型一部分的结果类型。比如：
+
+```typescript
+interface Empty<T> {
+}
+let x: Empty<number>;
+let y: Empty<string>;
+
+x = y;  // OK, because y matches structure of x
+```
+
+上面代码里，x和y是兼容的，因为它们的结构使用类型参数时并没有什么不同。 把这个例子改变一下，增加一个成员，就能看出是如何工作的了：
+
+```typescript
+interface NotEmpty<T> {
+    data: T;
+}
+let x: NotEmpty<number>;
+let y: NotEmpty<string>;
+
+x = y;  // Error, because x and y are not compatible
+```
+
+对于没指定泛型类型的泛型参数时，会把所有泛型参数当成any比较。 然后用结果类型进行比较，就像上面第一个例子。比如：
+
+```typescript
+let identity = function<T>(x: T): T {
+    // ...
+}
+
+let reverse = function<U>(y: U): U {
+    // ...
+}
+
+identity = reverse;  // OK, because (x: any) => any matches (y: any) => any
+```
+
 ### 高级类型
+
+若要详细了解此节，请[阅读源文档](https://www.tslang.cn/docs/handbook/advanced-types.html)
+
+* 交叉类型：交叉类型是将多个类型合并为一个类型。 这让我们可以把现有的多种类型叠加到一起成为一种类型，它包含了所需的所有类型的特性。 例如， Person & Serializable & Loggable同时是 Person 和 Serializable 和 Loggable。 就是说这个类型的对象同时拥有了这三种类型的成员。
+* 联合类型：表示一个值可以是几种类型之一。我们用竖线（|）分隔每个类型，所以number | string | boolean表示一个值可以是number，string，或boolean。如果一个值是联合类型，我们只能访问此联合类型的所有类型里共有的成员。
+* 类型保护与区分类型
+    * 类型谓词：parameterName is Type
+    * typeof类型保护：只有两种形式能被识别： typeof v === "typename"和 typeof v !== "typename"， "typename"必须是 "number"， "string"， "boolean"或 "symbol"。 但是TypeScript并不会阻止你与其它字符串比较，语言不会把那些表达式识别为类型保护。
+    * instanceof类型保护
 
 ### Symbols
 
