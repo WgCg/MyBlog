@@ -1128,7 +1128,7 @@ identity = reverse;  // OK, because (x: any) => any matches (y: any) => any
 
 ### 高级类型
 
-若要详细了解此节，请[阅读源文档](https://www.tslang.cn/docs/handbook/advanced-types.html)
+本节主要介绍通过type关键字创建高级类型，若要详细了解此节，请[阅读源文档](https://www.tslang.cn/docs/handbook/advanced-types.html)
 
 * 交叉类型：交叉类型是将多个类型合并为一个类型。 这让我们可以把现有的多种类型叠加到一起成为一种类型，它包含了所需的所有类型的特性。 例如， Person & Serializable & Loggable同时是 Person 和 Serializable 和 Loggable。 就是说这个类型的对象同时拥有了这三种类型的成员。
 * 联合类型：表示一个值可以是几种类型之一。我们用竖线（|）分隔每个类型，所以number | string | boolean表示一个值可以是number，string，或boolean。如果一个值是联合类型，我们只能访问此联合类型的所有类型里共有的成员。
@@ -1141,18 +1141,447 @@ identity = reverse;  // OK, because (x: any) => any matches (y: any) => any
 
 ### 迭代器和生成器
 
+当一个对象实现了Symbol.iterator属性时，我们认为它是可迭代的。
+
+#### for...of vs for...in
+
+* for...of遍历的是值，for...in遍历的是属性
+* 另一个区别是for..in可以操作任何对象；它提供了查看对象属性的一种方法。 但是 for..of关注于迭代对象的值。内置对象Map和Set已经实现了Symbol.iterator方法，让我们可以访问它们保存的值。
+    ```typescript
+    let pets = new Set(["Cat", "Dog", "Hamster"]);
+    pets["species"] = "mammals";
+
+    for (let pet in pets) {
+        console.log(pet); // "species"
+    }
+
+    for (let pet of pets) {
+        console.log(pet); // "Cat", "Dog", "Hamster"
+    }
+    ```
+
+#### 代码生成
+
+* 目标为ES5和ES3
+
+    当生成目标为ES5或ES3，迭代器只允许在Array类型上使用。 在非数组值上使用for..of语句会得到一个错误，就算这些非数组值已经实现了Symbol.iterator属性。
+
+    编译器会生成一个简单的for循环做为for...of循环，比如：
+    
+    ```typescript
+    let numbers = [1, 2, 3];
+    for (let num of numbers) {
+        console.log(num);
+    }
+    ```
+
+    生成的代码为：
+
+    ```typescript
+    var numbers = [1, 2, 3];
+    for (var _i = 0; _i < numbers.length; _i++) {
+        var num = numbers[_i];
+        console.log(num);
+    }
+    ```
+* 目标为ECMAScript 2015或更高
+
+    当目标为兼容ECMAScript 2015的引擎时，编译器会生成相对于引擎的for..of内置迭代器实现方式
+
 ### 模块
+
+同ECMAScript 2015的模块概念
+
+#### export = 和 import
+
+为了支持CommonJS和AMD的exports，TypeScript提供了export = 和import = require()语法
+
+```typescript ZipCodeValidator.ts
+let numberRegexp = /^[0-9]+$/;
+class ZipCodeValidator {
+    isAcceptable(s: string) {
+        return s.length === 5 && numberRegexp.test(s);
+    }
+}
+export = ZipCodeValidator;
+```
+
+```typescript Test.ts
+import zip = require("./ZipCodeValidator");
+
+// Some samples to try
+let strings = ["Hello", "98052", "101"];
+
+// Validators to use
+let validator = new zip();
+
+// Show whether each string passed each validator
+strings.forEach(s => {
+  console.log(`"${ s }" - ${ validator.isAcceptable(s) ? "matches" : "does not match" }`);
+});
+```
+
+#### 危险信号
+
+* 文件的顶层声明是export namespace Foo { ... }（删除Foo并把所有内容向上层移动一层）
+* 文件只有一个export class 或 export function（考虑使用export default）
+* 多个文件的顶层具有同样的export namespace Foo {（不要以为这些会被合并到一个Foo中！）
 
 ### 命名空间
 
 ### 命名空间和模块
 
+在TypeScript中，每个文件都代表一个模块，通过import，export，export = 和import = require(...)进行导入和导出，在TypeScript1.5之前称为外部模块。命名空间namespace，在TypeScript1.5之前称为内部模块，是定义在全局空间下的一个JS对象，不存在导入和导出的概念，不同文件相同的命名空间里的变量会被整合到一起，因此需要把所有相同命名空间的文件通过--outFile输出到一个文件中，防止发生运行时错误，使用全局命名空间的时候，不能使用import导入其他模块。当把namespace通过export导出的时候，这个内部模块就变成了外部模块。
+
+#### 命名空间
+
+命名空间是位于全局命名空间下的一个普通的带有名字的JavaScript对象。 这令命名空间十分容易使用。 它们可以在多文件中同时使用，并通过 --outFile结合在一起。 命名空间是帮你组织Web应用不错的方式，你可以把所有依赖都放在HTML页面的&lt;script&gt;标签里。
+
+但就像其它的全局命名空间污染一样，它很难去识别组件之间的依赖关系，尤其是在大型的应用中。
+
+### 模块
+
+像命名空间一样，模块可以包含代码和声明。 不同的是模块可以 声明它的依赖。
+
+模块会把依赖添加到模块加载器上（例如CommonJs / Require.js）。 对于小型的JS应用来说可能没必要，但是对于大型应用，这一点点的花费会带来长久的模块化和可维护性上的便利。 模块也提供了更好的代码重用，更强的封闭性以及更好的使用工具进行优化。
+
+
 ### 模块解析
+
+[官网原文](https://www.tslang.cn/docs/handbook/module-resolution.html)
 
 ### 声明合并
 
+#### 接口合并
+
+接口的非函数的成员应该是唯一的。如果它们不是唯一的，那么它们必须是相同的类型。如果两个接口中同时声明了同名的非函数成员且它们的类型不同，则编译器会报错。
+
+于函数成员，每个同名函数声明都会被当成这个函数的一个重载。 同时需要注意，当接口 A与后来的接口 A合并时，后面的接口具有更高的优先级。
+
+如下例所示：
+
+```typescript
+interface Cloner {
+    clone(animal: Animal): Animal;
+}
+
+interface Cloner {
+    clone(animal: Sheep): Sheep;
+}
+
+interface Cloner {
+    clone(animal: Dog): Dog;
+    clone(animal: Cat): Cat;
+}
+```
+
+这三个接口合并成一个声明：
+
+```typescript
+interface Cloner {
+    clone(animal: Dog): Dog;
+    clone(animal: Cat): Cat;
+    clone(animal: Sheep): Sheep;
+    clone(animal: Animal): Animal;
+}
+```
+
+这个规则有一个例外是当出现特殊的函数签名时。 如果签名里有一个参数的类型是 单一的字符串字面量（比如，不是字符串字面量的联合类型），那么它将会被提升到重载列表的最顶端。
+
+比如，下面的接口会合并到一起：
+
+```typescript
+interface Document {
+    createElement(tagName: any): Element;
+}
+interface Document {
+    createElement(tagName: "div"): HTMLDivElement;
+    createElement(tagName: "span"): HTMLSpanElement;
+}
+interface Document {
+    createElement(tagName: string): HTMLElement;
+    createElement(tagName: "canvas"): HTMLCanvasElement;
+}
+
+```
+
+合并后的Document将会像下面这样：
+
+```typescript
+interface Document {
+    createElement(tagName: "canvas"): HTMLCanvasElement;
+    createElement(tagName: "div"): HTMLDivElement;
+    createElement(tagName: "span"): HTMLSpanElement;
+    createElement(tagName: string): HTMLElement;
+    createElement(tagName: any): Element;
+}
+
+```
+
+#### 合并命名空间
+
+对于命名空间的合并，模块导出的同名接口进行合并，构成单一命名空间内含合并后的接口。
+
+对于命名空间里值的合并，如果当前已经存在给定名字的命名空间，那么后来的命名空间的导出成员会被加到已经存在的那个模块里
+
+Animals声明合并示例：
+
+```typescript
+namespace Animals {
+    export class Zebra { }
+}
+
+namespace Animals {
+    export interface Legged { numberOfLegs: number; }
+    export class Dog { }
+}
+```
+
+等同于：
+
+```typescript
+namespace Animals {
+    export interface Legged { numberOfLegs: number; }
+
+    export class Zebra { }
+    export class Dog { }
+}
+```
+
+除了这些合并外，你还需要了解非导出成员是如何处理的。 非导出成员仅在其原有的（合并前的）命名空间内可见。这就是说合并之后，从其它命名空间合并进来的成员无法访问非导出成员。
+
+```typescript
+namespace Animal {
+    let haveMuscles = true;
+
+    export function animalsHaveMuscles() {
+        return haveMuscles;
+    }
+}
+
+namespace Animal {
+    export function doAnimalsHaveMuscles() {
+        return haveMuscles;  // Error, because haveMuscles is not accessible here
+    }
+}
+```
+
+#### 命名空间与类和函数和枚举类型合并
+
+* 合并命名空间和类
+    ```typescript
+    class Album {
+        label: Album.AlbumLabel;
+    }
+    namespace Album {
+        export class AlbumLabel { }
+    }
+    ```
+    生成的代码
+    ```javascript
+    class Album {
+    }
+    (function (Album) {
+        class AlbumLabel {
+        }
+        Album.AlbumLabel = AlbumLabel;
+    })(Album || (Album = {}));
+    ```
+* 利用命名空间来添加函数的属性
+    ```typescript
+    function buildLabel(name: string): string {
+        return buildLabel.prefix + name + buildLabel.suffix;
+    }
+
+    namespace buildLabel {
+        export let suffix = "";
+        export let prefix = "Hello, ";
+    }
+
+    console.log(buildLabel("Sam Smith"));
+    ```
+* 利用命名空间来扩展枚举型：
+    ```typescript
+    enum Color {
+        red = 1,
+        green = 2,
+        blue = 4
+    }
+
+    namespace Color {
+        export function mixColor(colorName: string) {
+            if (colorName == "yellow") {
+                return Color.red + Color.green;
+            }
+            else if (colorName == "white") {
+                return Color.red + Color.green + Color.blue;
+            }
+            else if (colorName == "magenta") {
+                return Color.red + Color.blue;
+            }
+            else if (colorName == "cyan") {
+                return Color.green + Color.blue;
+            }
+        }
+    }
+    ```
+
+#### 非法的合并
+
+TypeScript并非允许所有的合并。目前，类不能与其它类或变量合并。
+
 ### JSX
 
+#### 基本用法
+
+想要使用JSX必须做两件事
+1. 给文件一个.tsx扩展名
+2. 启用jsx选项
+
+TypeScript具有三种JSX模式：
+1. preserve：在preserver模式下生成代码中会保留JSX以供后续的转换操作使用（比如：Babel），输出文件扩展名为.jsx。
+2. react：会生成React.createElement，在使用前不需要再进行转换操作了，输出文件扩展名为.js。
+3. react-native：相当于preserve，输出文件扩展名为.js。
+
+#### 类型检查
+
+* 固有元素：环境自带的某些东西（比如，DOM环境里的div或span组件），固有元素使用特殊的接口JSX.IntrinsicElements来查找。默认地，如果这个接口没有指定，会全部通过，不对固有元素进行类型检查。然而，如果这个接口存在，那么固有元素的名字需要在JSX.IntrinsicElements接口的属性里查找。 例如：
+    ```typescript
+    declare namespace JSX {
+        interface IntrinsicElements {
+            foo: any
+        }
+    }
+
+    let a = <foo />; // 正确
+    let b = <div />; // 错误
+    ```
+* 基于值得元素： 基于值得元素会简单的在它所在的作用域里按标识符查找
+
+
 ### 装饰器
+
+装饰器是一种特殊类型的声明，它能够被附加到类声明，方法， 访问符，属性或参数上。 装饰器使用 @expression这种形式，expression求值后必须为一个函数，它会在运行时被调用，被装饰的声明信息做为参数传入。
+
+例如，有一个@sealed装饰器，我们会这样定义sealed函数：
+
+```typescript
+function sealed(target) {
+    // do something with "target" ...
+}
+```
+
+#### 装饰器工厂
+
+如果我们要定制一个修饰器如何应用到一个声明上，我们得写一个装饰器工厂函数。 装饰器工厂就是一个简单的函数，它返回一个表达式，以供装饰器在运行时调用。
+
+我们可以通过下面的方式来写一个装饰器工厂函数：
+
+```typescript
+function color(value: string) { // 这是一个装饰器工厂
+    return function (target) { //  这是装饰器
+        // do something with "target" and "value"...
+    }
+}
+```
+
+#### 装饰器组合
+
+多个装饰器可以同时应用到一个声明上，就像下面的示例
+
+```typescript
+// 书写在同一行上
+@f @g x
+
+// 书写在多行上
+@f
+@g
+x
+```
+
+当多个装饰器应用于一个声明上，它们求值方式与复合函数相似。在这个模型下，当复合f和g时，复合的结果(f ∘ g)(x)等同于f(g(x))。
+
+#### 装饰器求值
+
+类中不同声明上的装饰器将按以下规定的顺序应用：
+
+1. 参数装饰器，然后依次是方法装饰器，访问符装饰器，或属性装饰器应用到每个实例成员。
+2. 参数装饰器，然后依次是方法装饰器，访问符装饰器，或属性装饰器应用到每个静态成员。
+3. 参数装饰器应用到构造函数。
+4. 类装饰器应用到类。
+
+##### 类装饰器
+
+参数：
+1. 类的构造函数。
+
+如果类装饰器返回一个值，它会使用提供的构造函数来替换类的声明。
+
+```javascript
+注意 如果你要返回一个新的构造函数，你必须注意处理好原来的原型链。在运行时的装饰器调用逻辑中不会为你做这些。
+```
+
+##### 方法装饰器
+
+参数：
+1. 对于静态成员来说是类的构造函数，对于实例成员是类的原型对象。
+2. 成员的名字。
+3. 成员的属性描述符。
+
+```javascript
+注意  如果代码输出目标版本小于ES5，属性描述符将会是undefined。
+```
+
+如果方法装饰器返回一个值，它会被用作方法的属性描述符。
+
+```javascript
+注意  如果代码输出目标版本小于ES5返回值会被忽略。
+```
+
+##### 访问器装饰器
+
+```javascript
+注意  TypeScript不允许同时装饰一个成员的get和set访问器。取而代之的是，一个成员的所有装饰的必须应用在文档顺序的第一个访问器上。这是因为，在装饰器应用于一个属性描述符时，它联合了get和set访问器，而不是分开声明的。
+```
+
+参数：
+1. 对于静态成员来说是类的构造函数，对于实例成员是类的原型对象。
+2. 成员的名字。
+3. 成员的属性描述符。
+
+```javascript
+注意  如果代码输出目标版本小于ES5，属性描述符将会是undefined。
+```
+
+如果方法装饰器返回一个值，它会被用作方法的属性描述符。
+
+```javascript
+注意  如果代码输出目标版本小于ES5返回值会被忽略。
+```
+
+##### 属性装饰器
+
+属性装饰器表达式会在运行时当作函数被调用，传入下列2个参数：
+
+1. 对于静态成员来说是类的构造函数，对于实例成员是类的原型对象。
+2. 成员的名字。
+
+```javascript
+注意  属性描述符不会做为参数传入属性装饰器，这与TypeScript是如何初始化属性装饰器的有关。 因为目前没有办法在定义一个原型对象的成员时描述一个实例属性，并且没办法监视或修改一个属性的初始化方法。返回值也会被忽略。因此，属性描述符只能用来监视类中是否声明了某个名字的属性。
+```
+
+##### 参数装饰器
+
+参数装饰器表达式会在运行时当作函数被调用，传入下列3个参数：
+
+1. 对于静态成员来说是类的构造函数，对于实例成员是类的原型对象。
+2. 成员的名字。
+3. 参数在函数参数列表中的索引。
+
+```javascript
+注意  参数装饰器只能用来监视一个方法的参数是否被传入。
+```
+
+参数装饰器的返回值会被忽略。
 
 ### Mixins
