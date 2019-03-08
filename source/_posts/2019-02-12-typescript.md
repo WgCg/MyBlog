@@ -45,21 +45,28 @@ TypeScript是微软开发的一款开源的编程语言，本质上是向JavaScr
 ### 基础类型
 
 * 布尔值（Boolean）
+
     ```typescript
     let isDone: boolean = false
     ```
+
 * 数字（Number）
+
     ```typescript
     let decLiteral: number = 6
     let hexLiteral: number = 0xf00d
     let binaryLiteral: number = 0b1010
     let octalLiteral: number = 0o744
     ```
+
 * 字符串（String）
+
     ```typescript
     let name: string = 'bob'
     ```
+
 * 数组（Array）
+
     ```typescript
     // 在元素类型后面接上 []，表示由此类型元素组成的一个数组
     let list: number[] = [1, 2, 3]
@@ -67,19 +74,25 @@ TypeScript是微软开发的一款开源的编程语言，本质上是向JavaScr
     // 数组泛型，Array<元素类型>
     let list: Array<number> = [1, 2, 3]
     ```
+
 * 元组（Tuple）：元组类型允许表示一个已知元素数量和类型的数组，各元素的类型不必相同
+
     ```typescript
     let x: [string, number]
     x = ['hello', 10] // OK
     x = [10, 'hello'] // Error
     ```
+
 * 枚举（Enum）
+
     ```typescript
     enum Color { Red = 2, Green, Blue }
     let c: Color = Color.Green // 3
     let colorName: string = Color[2] // 'Red'
     ```
+
 * Any：允许你在编译时可选择地包含或移除类型检查，与Object的区别在于，Object类型的变量只是允许你给它赋任意值，但是却不能够在它上面调用任意的方法
+
     ```typescript
     let notSure: any = 4
     notSure.ifItExits() // OK
@@ -88,17 +101,21 @@ TypeScript是微软开发的一款开源的编程语言，本质上是向JavaScr
     let prettySure: Object = 4
     prettySure.toFixed() // Error
     ```
+
 * Void：声明一个void类型的变量，只能赋值为undefined和null
 * Null和Undefined：默认情况下null和undefined是所有类型的子类型。就是说你可以把null和undefined赋值给number类型的变量。然而，当你指定了--strictNullChecks标记，null和undefined只能赋值给void和它们各自
 * Never：表示的是那些永不存在的值的类型。never类型是任何类型的子类型，也可以赋值给任何类型；然而，没有类型是never的子类型或可以赋值给never类型（除了never本身之外）。
 * Object：表示非原始类型，也就是除number，string，boolean，symbol，null或undefined之外的类型
+
     ```typescript
     let o: object = { prop: 0 } // OK
     let o1: object = 4 // Error
     // 注意，object与Object的区别
     let o1: Object = 4 // OK
     ```
+
 * 类型断言：好比其它语言里的类型转换
+
     ```typescript
     // “尖括号”语法
     let someValue: any = 'this is a string'
@@ -327,6 +344,7 @@ tom.move(34)
     // 错误：Animal 与 Employee不兼容，私有成员name的定义不是来自同一处
     animal = employee
     ```
+
 * protected：protected修饰符与private修饰符的行为很相似，但有一点不同，protected成员在派生类中仍然可以访问。构造函数也可以被标记成protected，这意味着这个类不能再包含它的类外被实例化，但是能被继承。
 
     ``` typescript
@@ -517,6 +535,7 @@ let myAdd: (baseValue: number, increment: number) => number = function (x: numbe
 #### 可选参数和默认参数
 
 * 传递给一个函数的参数个数必须与函数期望的参数个数一致
+
     ```typescript
     function buildName(firstName: string, lastName: string) {
         return firstName + " " + lastName;
@@ -526,7 +545,9 @@ let myAdd: (baseValue: number, increment: number) => number = function (x: numbe
     let result2 = buildName("Bob", "Adams", "Sr.");  // error, too many parameters
     let result3 = buildName("Bob", "Adams");         // ah, just right
     ```
+
 * 在参数名旁边使用?实现可选参数的功能，可选参数必须跟在必须参数后面
+
     ```typescript
     function buildName(firstName: string, lastName?: string) {
         if (lastName)
@@ -539,7 +560,9 @@ let myAdd: (baseValue: number, increment: number) => number = function (x: numbe
     let result2 = buildName("Bob", "Adams", "Sr.");  // error, too many parameters
     let result3 = buildName("Bob", "Adams");  // ah, just right
     ```
+
 * 带默认值得参数不需要放在必须参数的后面。如果带默认值的参数出现在必须参数前面，用户必须明确的传入undefined值来获得默认值
+
     ```typescript
     function buildName(firstName = "Will", lastName: string) {
         return firstName + " " + lastName;
@@ -550,18 +573,23 @@ let myAdd: (baseValue: number, increment: number) => number = function (x: numbe
     let result3 = buildName("Bob", "Adams");         // okay and returns "Bob Adams"
     let result4 = buildName(undefined, "Adams");     // okay and returns "Will Adams"
     ```
+
 * 可选参数和末尾的默认参数共享参数类型
+
     ```typescript
     function buildName(firstName: string, lastName?: string) {
         //. ..
     }
     ```
+
     和
+
     ```typescript
     function buildName(firstName: string, lastName = 'Smith') {
         //. ..
     }
     ```
+
     共享同样的类型(firstName: string, lastName?: string) => string
 
 #### 剩余参数
@@ -811,11 +839,11 @@ enum BooleanLikeHetergeneousEnum {
 * 它是枚举的第一个成员且没有初始化器，这种情况下它被赋值于0
 * 它不带有初始化器且它之前的枚举成员是一个*数字常量*。这种情况下，当前枚举成员的值为它上一个枚举成员的值加1
 * 枚举成员使用*常量枚举表达式*初始化。常量枚举表达式是TypeScript表达式的子集，他可以在编译阶段求值。当一个表达式满足下面条件之一时，它就是一个常量枚举表达式：
-    * 一个枚举表达式字面量（主要是字符串字面量和数字字面量）
-    * 一个对之前定义的常量枚举成员的引用（可以是在不同的枚举类型中定义的）
-    * 带括号的常量枚举表达式
-    * 一元运算符+，-，~其中之一运用在了常量枚举表达式
-    * 常量枚举表达式做为二元运算符 +，-，*，/，%，<<，>>，>>>，|，^的操作对象。若常数枚举表达式求值后为NaN或Inifity，则会在编译阶段报错
+  * 一个枚举表达式字面量（主要是字符串字面量和数字字面量）
+  * 一个对之前定义的常量枚举成员的引用（可以是在不同的枚举类型中定义的）
+  * 带括号的常量枚举表达式
+  * 一元运算符+，-，~其中之一运用在了常量枚举表达式
+  * 常量枚举表达式做为二元运算符 +，-，*，/，%，<<，>>，>>>，|，^的操作对象。若常数枚举表达式求值后为NaN或Inifity，则会在编译阶段报错
 
 所有其它情况的枚举成员被当作是需要计算得出的值
 
@@ -830,6 +858,7 @@ enum BooleanLikeHetergeneousEnum {
 当所有枚举成员都拥有字面量枚举值时，它就带有了一种特殊的语义：
 
 * 枚举成员成为了类型。例如，我们可以说某些成员只能是枚举成员的值：
+
     ```typescript
     enum ShapeKind {
         Circle,
@@ -864,7 +893,9 @@ enum BooleanLikeHetergeneousEnum {
         kind: ColorKind.Green
     }
     ```
+
 * 枚举类型本身变成了每个枚举成员的联合。通过联合枚举，类型系统能够利用这样一个事实，它可以知道枚举里的值得集合。因此，TypeScript能够捕获在比较值的时候犯的愚蠢的错误。例如：
+
     ```typescript
     enum E {
         Foo,
@@ -878,6 +909,7 @@ enum BooleanLikeHetergeneousEnum {
         }
     }
     ```
+
     这个例子里，我们先检查 x是否不是 E.Foo。 如果通过了这个检查，然后 ||会发生短路效果， if语句体里的内容会被执行。 然而，这个检查没有通过，那么 x则 只能为 E.Foo，因此没理由再去检查它是否为 E.Bar
 
 #### 运行时的枚举
@@ -917,6 +949,7 @@ console.log(StringEnum['a']) // undefined
 常量枚举有两个特点：
 
 * 常量枚举只能使用常量枚举表达式。
+
     ```typescript
     // OK
     enum NumberEnum {
@@ -930,7 +963,9 @@ console.log(StringEnum['a']) // undefined
         B = Math.random()
     }
     ```
+
 * 不同于常规的枚举，它们在编译阶段会被删除。常量枚举成员在使用的地方会被内联进来。之所以可以这么做是因为，常量枚举不允许包含计算成员。
+
     ```typescript
     const enum Directions {
         Up,
@@ -941,7 +976,9 @@ console.log(StringEnum['a']) // undefined
 
     let directions = [Directions.Up, Directions.Down, Directions.Left, Directions.Right]
     ```
+
     生成后的代码为：
+
     ```typescript
     var directions = [0 /* Up */, 1 /* Down */, 2 /* Left */, 3 /* Right */];
     ```
@@ -973,7 +1010,6 @@ let x = 3
 ```
 
 变量x的类型为数字。这种推断发生在初始化变量和成员，设置默认参数值和决定函数返回值时。
-
 
 #### 最佳通用类型
 
@@ -1027,7 +1063,7 @@ class Person {
 }
 
 // OK, because of a structural typing
-let p: Named = new Person 
+let p: Named = new Person
 ```
 
 TypeScript的结构性子类型是根据JavaScript代码的典型写法来设计的。 因为JavaScript里广泛地使用匿名对象，例如函数表达式和对象字面量，所以使用结构类型系统来描述这些类型比使用名义类型系统更好。
@@ -1133,9 +1169,9 @@ identity = reverse;  // OK, because (x: any) => any matches (y: any) => any
 * 交叉类型：交叉类型是将多个类型合并为一个类型。 这让我们可以把现有的多种类型叠加到一起成为一种类型，它包含了所需的所有类型的特性。 例如， Person & Serializable & Loggable同时是 Person 和 Serializable 和 Loggable。 就是说这个类型的对象同时拥有了这三种类型的成员。
 * 联合类型：表示一个值可以是几种类型之一。我们用竖线（|）分隔每个类型，所以number | string | boolean表示一个值可以是number，string，或boolean。如果一个值是联合类型，我们只能访问此联合类型的所有类型里共有的成员。
 * 类型保护与区分类型
-    * 类型谓词：parameterName is Type
-    * typeof类型保护：只有两种形式能被识别： typeof v === "typename"和 typeof v !== "typename"， "typename"必须是 "number"， "string"， "boolean"或 "symbol"。 但是TypeScript并不会阻止你与其它字符串比较，语言不会把那些表达式识别为类型保护。
-    * instanceof类型保护
+  * 类型谓词：parameterName is Type
+  * typeof类型保护：只有两种形式能被识别： typeof v === "typename"和 typeof v !== "typename"， "typename"必须是 "number"， "string"， "boolean"或 "symbol"。 但是TypeScript并不会阻止你与其它字符串比较，语言不会把那些表达式识别为类型保护。
+  * instanceof类型保护
 
 ### Symbols
 
@@ -1147,6 +1183,7 @@ identity = reverse;  // OK, because (x: any) => any matches (y: any) => any
 
 * for...of遍历的是值，for...in遍历的是属性
 * 另一个区别是for..in可以操作任何对象；它提供了查看对象属性的一种方法。 但是 for..of关注于迭代对象的值。内置对象Map和Set已经实现了Symbol.iterator方法，让我们可以访问它们保存的值。
+
     ```typescript
     let pets = new Set(["Cat", "Dog", "Hamster"]);
     pets["species"] = "mammals";
@@ -1167,7 +1204,7 @@ identity = reverse;  // OK, because (x: any) => any matches (y: any) => any
     当生成目标为ES5或ES3，迭代器只允许在Array类型上使用。 在非数组值上使用for..of语句会得到一个错误，就算这些非数组值已经实现了Symbol.iterator属性。
 
     编译器会生成一个简单的for循环做为for...of循环，比如：
-    
+
     ```typescript
     let numbers = [1, 2, 3];
     for (let num of numbers) {
@@ -1184,6 +1221,7 @@ identity = reverse;  // OK, because (x: any) => any matches (y: any) => any
         console.log(num);
     }
     ```
+
 * 目标为ECMAScript 2015或更高
 
     当目标为兼容ECMAScript 2015的引擎时，编译器会生成相对于引擎的for..of内置迭代器实现方式
@@ -1244,7 +1282,6 @@ strings.forEach(s => {
 像命名空间一样，模块可以包含代码和声明。 不同的是模块可以 声明它的依赖。
 
 模块会把依赖添加到模块加载器上（例如CommonJs / Require.js）。 对于小型的JS应用来说可能没必要，但是对于大型应用，这一点点的花费会带来长久的模块化和可维护性上的便利。 模块也提供了更好的代码重用，更强的封闭性以及更好的使用工具进行优化。
-
 
 ### 模块解析
 
@@ -1369,6 +1406,7 @@ namespace Animal {
 #### 命名空间与类和函数和枚举类型合并
 
 * 合并命名空间和类
+
     ```typescript
     class Album {
         label: Album.AlbumLabel;
@@ -1377,7 +1415,9 @@ namespace Animal {
         export class AlbumLabel { }
     }
     ```
+
     生成的代码
+
     ```javascript
     class Album {
     }
@@ -1387,7 +1427,9 @@ namespace Animal {
         Album.AlbumLabel = AlbumLabel;
     })(Album || (Album = {}));
     ```
+
 * 利用命名空间来添加函数的属性
+
     ```typescript
     function buildLabel(name: string): string {
         return buildLabel.prefix + name + buildLabel.suffix;
@@ -1400,7 +1442,9 @@ namespace Animal {
 
     console.log(buildLabel("Sam Smith"));
     ```
+
 * 利用命名空间来扩展枚举型：
+
     ```typescript
     enum Color {
         red = 1,
@@ -1435,10 +1479,12 @@ TypeScript并非允许所有的合并。目前，类不能与其它类或变量�
 #### 基本用法
 
 想要使用JSX必须做两件事
+
 1. 给文件一个.tsx扩展名
 2. 启用jsx选项
 
 TypeScript具有三种JSX模式：
+
 1. preserve：在preserver模式下生成代码中会保留JSX以供后续的转换操作使用（比如：Babel），输出文件扩展名为.jsx。
 2. react：会生成React.createElement，在使用前不需要再进行转换操作了，输出文件扩展名为.js。
 3. react-native：相当于preserve，输出文件扩展名为.js。
@@ -1446,6 +1492,7 @@ TypeScript具有三种JSX模式：
 #### 类型检查
 
 * 固有元素：环境自带的某些东西（比如，DOM环境里的div或span组件），固有元素使用特殊的接口JSX.IntrinsicElements来查找。默认地，如果这个接口没有指定，会全部通过，不对固有元素进行类型检查。然而，如果这个接口存在，那么固有元素的名字需要在JSX.IntrinsicElements接口的属性里查找。 例如：
+
     ```typescript
     declare namespace JSX {
         interface IntrinsicElements {
@@ -1456,8 +1503,8 @@ TypeScript具有三种JSX模式：
     let a = <foo />; // 正确
     let b = <div />; // 错误
     ```
-* 基于值得元素： 基于值得元素会简单的在它所在的作用域里按标识符查找
 
+* 基于值得元素： 基于值得元素会简单的在它所在的作用域里按标识符查找
 
 ### 装饰器
 
@@ -1513,6 +1560,7 @@ x
 ##### 类装饰器
 
 参数：
+
 1. 类的构造函数。
 
 如果类装饰器返回一个值，它会使用提供的构造函数来替换类的声明。
@@ -1524,6 +1572,7 @@ x
 ##### 方法装饰器
 
 参数：
+
 1. 对于静态成员来说是类的构造函数，对于实例成员是类的原型对象。
 2. 成员的名字。
 3. 成员的属性描述符。
@@ -1545,6 +1594,7 @@ x
 ```
 
 参数：
+
 1. 对于静态成员来说是类的构造函数，对于实例成员是类的原型对象。
 2. 成员的名字。
 3. 成员的属性描述符。
@@ -1585,3 +1635,98 @@ x
 参数装饰器的返回值会被忽略。
 
 ### Mixins
+
+* 使用implements关键词，把类当做接口。
+* 为将要mixin进来的属性方法创建出占位属性,告诉编译器这些成员在运行时是可用的。
+
+```typescript
+// Disposable Mixin
+class Disposable {
+    isDisposed: boolean;
+    dispose() {
+        this.isDisposed = true;
+    }
+
+}
+
+// Activatable Mixin
+class Activatable {
+    isActive: boolean;
+    activate() {
+        this.isActive = true;
+    }
+    deactivate() {
+        this.isActive = false;
+    }
+}
+
+class SmartObject implements Disposable, Activatable {
+    constructor() {
+        setInterval(() => console.log(this.isActive + " : " + this.isDisposed), 500);
+    }
+
+    interact() {
+        this.activate();
+    }
+
+    // Disposable
+    isDisposed: boolean = false;
+    dispose: () => void;
+    // Activatable
+    isActive: boolean = false;
+    activate: () => void;
+    deactivate: () => void;
+}
+applyMixins(SmartObject, [Disposable, Activatable]);
+
+let smartObj = new SmartObject();
+setTimeout(() => smartObj.interact(), 1000);
+
+////////////////////////////////////////
+// In your runtime library somewhere
+////////////////////////////////////////
+
+function applyMixins(derivedCtor: any, baseCtors: any[]) {
+    baseCtors.forEach(baseCtor => {
+        Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
+            derivedCtor.prototype[name] = baseCtor.prototype[name];
+        });
+    });
+}
+```
+
+### 三斜线指令
+
+三斜线指令是包含单个XML标签的单行注释。注释的内容会作为编译器指令使用。
+
+三斜线指令仅可放在包含它的文件的最顶端。一个三斜线指令的前面只能出现单行或多行注释，这包括其它的三斜线指令。 如果它们出现在一个语句或声明之后，那么它们会被当做普通的单行注释，并且不具有特殊的涵义。
+
+使用--noResolve编译选项，三斜线引用会被忽略
+
+* /// &lt;reference path="..." /&gt;：用于声明文件间的依赖，告诉编译器在编译过程中要引入的额外的文件。
+* /// &lt;reference types="..." /&gt;：用于声明对某个包的依赖，仅当在你需要写一个d.ts文件时才使用这个指令。若要在.ts文件声明一个对@types包的依赖，使用--types命令行选项或在tsconfig.json里指定。
+* /// &lt;reference no-default-lib="true" /&gt;：这个指令把一个文件标记成默认库，告诉编译器在编译过程中不要包含这个默认库（比如，lib.d.ts）。 这与在命令行上使用 --noLib相似。还要注意，当传递了--skipDefaultLibCheck时，编译器只会忽略检查带有/// &lt;reference no-default-lib="true"/&gt;的文件。
+* /// &lt;amd-module name="..." /&gt;：
+
+    默认情况下生成的AMD模块都是匿名的。 但是，当一些工具需要处理生成的模块时会产生问题，比如 r.js。
+
+    amd-module指令允许给编译器传入一个可选的模块名：
+
+    ```typescript amdModule.ts
+    ///<amd-module name='NamedModule'/>
+    export class C {
+    }
+    ```
+
+    这会将NamedModule传入到AMD define函数里：
+
+    ```typescript amdModule.js
+    define("NamedModule", ["require", "exports"], function (require, exports) {
+        var C = (function () {
+            function C() {
+            }
+            return C;
+        })();
+        exports.C = C;
+    });
+    ```
