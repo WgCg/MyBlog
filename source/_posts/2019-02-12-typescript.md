@@ -7,7 +7,7 @@ categories:
 - TypeScript
 ---
 
-## 简介
+## 简介 
 
 ### TypeScript是什么
 
